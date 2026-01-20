@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Template Editor</title>
+    <title>Smart Template Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -22,7 +22,7 @@
                     <div class="bg-blue-600 text-white p-2 rounded-lg">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </div>
-                    <span class="font-bold text-xl tracking-tight text-slate-800">HTML Template Editor for Gamisya</span>
+                    <span class="font-bold text-xl tracking-tight text-slate-800">SmartEditor</span>
                 </div>
                 <div class="text-sm text-slate-500 hidden sm:block">
                     Auto-detects {{variables}} in your HTML
@@ -75,15 +75,26 @@
                     </div>
                 </div>
 
-                <!-- Step 3: Download -->
+                <!-- Step 3: Export -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
                         <span class="bg-slate-100 text-slate-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
                         Export
                     </h2>
-                    <button id="downloadBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
-                        <i class="fa-solid fa-download"></i> Download HTML
-                    </button>
+                    <div class="space-y-3">
+                        <button id="downloadBtn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
+                            <i class="fa-solid fa-download"></i> Download HTML
+                        </button>
+                        
+                        <!-- NEW EMAIL BUTTON -->
+                        <button id="emailBtn" disabled class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors border border-slate-200">
+                            <i class="fa-regular fa-copy"></i> Copy for Email
+                        </button>
+                        <p class="text-xs text-center text-slate-400">
+                            <i class="fa-solid fa-info-circle"></i> Copies the design. Paste it into Gmail/Outlook.
+                        </p>
+                    </div>
+                    
                     <div id="statusMsg" class="mt-3 text-center text-sm font-medium hidden"></div>
                 </div>
             </div>
@@ -116,6 +127,7 @@
         const dynamicInputs = document.getElementById('dynamicInputs');
         const previewBtn = document.getElementById('previewBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        const emailBtn = document.getElementById('emailBtn');
         const previewFrame = document.getElementById('previewFrame');
         const emptyState = document.getElementById('emptyState');
         const emptyStateText = document.getElementById('emptyStateText');
@@ -151,26 +163,27 @@
 
         // --- 2. DYNAMIC VARIABLE DETECTION ---
         function detectVariables(html) {
-            // Regex to find {{ANY_TEXT_HERE}}
-            // Handles {{Name}}, {{  Name  }}, {{ Name_1 }}
             const regex = /{{\s*([\w\-\.]+)\s*}}/g;
             let match;
             const uniqueVars = new Set();
-            
             while ((match = regex.exec(html)) !== null) {
-                uniqueVars.add(match[1]); // Add the variable name (inside braces)
+                uniqueVars.add(match[1]);
             }
-
             return Array.from(uniqueVars);
         }
 
         function createInputFields(vars) {
-            dynamicInputs.innerHTML = ''; // Clear previous
+            dynamicInputs.innerHTML = ''; 
 
             if (vars.length === 0) {
                 dynamicInputs.innerHTML = `
-                    <div class="text-center py-4 text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-                        <p class="text-sm">No {{variables}} detected in this file.</p>
+                    <div class="text-center py-6 px-4 text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                        <i class="fa-solid fa-circle-question text-xl mb-2 text-slate-400"></i>
+                        <p class="font-semibold text-sm mb-1">No variables found</p>
+                        <p class="text-xs mb-3">To make this template editable, open <span class="font-mono bg-slate-200 px-1 rounded text-slate-700">${currentFilename}</span> in your editor and add tags like:</p>
+                        <div class="bg-slate-800 text-slate-200 p-2 rounded text-xs font-mono text-left">
+                            &lt;p&gt;Hello {{Name}}&lt;/p&gt;
+                        </div>
                     </div>`;
                 return;
             }
@@ -178,10 +191,7 @@
             vars.forEach(varName => {
                 const div = document.createElement('div');
                 div.className = "group";
-                
-                // Formatted Label (replaces underscores with spaces)
                 const labelText = varName.replace(/_/g, ' ');
-                
                 div.innerHTML = `
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">${labelText}</label>
                     <input type="text" 
@@ -193,7 +203,6 @@
                 dynamicInputs.appendChild(div);
             });
 
-            // Add Enter key listener to new inputs
             const inputs = document.querySelectorAll('.variable-input');
             inputs.forEach(input => {
                 input.addEventListener('keyup', (e) => {
@@ -213,6 +222,7 @@
             
             // UI Loading State
             downloadBtn.disabled = true;
+            emailBtn.disabled = true;
             emptyState.style.display = 'none';
             const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
             iframeDoc.open();
@@ -224,16 +234,12 @@
                 if (!res.ok) throw new Error("File not found");
                 
                 currentTemplateContent = await res.text();
-                
-                // 1. Detect Variables
                 detectedVariables = detectVariables(currentTemplateContent);
-                
-                // 2. Create Inputs
                 createInputFields(detectedVariables);
+                updatePreview(currentTemplateContent);
                 
-                // 3. Show Preview
-                updatePreview(currentTemplateContent); // Show raw initially
                 downloadBtn.disabled = false;
+                emailBtn.disabled = false;
 
             } catch (err) {
                 console.error(err);
@@ -249,18 +255,12 @@
             
             let modifiedHtml = currentTemplateContent;
             
-            // Loop through all generated inputs and replace text
             const inputs = document.querySelectorAll('.variable-input');
             inputs.forEach(input => {
                 const varName = input.dataset.var;
                 const value = input.value.trim();
                 
-                // Only replace if user typed something, otherwise keep placeholder or replace with empty? 
-                // Usually better to keep placeholder visible if empty, OR replace with empty string.
-                // Here we replace with value if present, otherwise we leave the tag so they see what's missing.
                 if (value) {
-                    // Global regex replace for this specific variable
-                    // Handles {{Var}} and {{ Var }}
                     const regex = new RegExp(`{{\\s*${varName}\\s*}}`, 'g');
                     modifiedHtml = modifiedHtml.replace(regex, value);
                 }
@@ -281,6 +281,7 @@
             showStatus("Preview updated!", "text-green-600");
         });
 
+        // DOWNLOAD HANDLER
         downloadBtn.addEventListener('click', () => {
             const html = generateModifiedHtml();
             if (!html) return;
@@ -288,18 +289,44 @@
             const blob = new Blob([html], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            
-            // Filename generation
             const cleanOriginalName = currentFilename.replace('.html', '');
             a.href = url;
             a.download = `${cleanOriginalName}_edited.html`;
-            
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
             showStatus("Downloaded successfully!", "text-blue-600");
+        });
+
+        // EMAIL COPY HANDLER (NEW)
+        emailBtn.addEventListener('click', async () => {
+            const html = generateModifiedHtml();
+            if (!html) return;
+
+            try {
+                // We create a rich text blob (HTML) and a plain text blob
+                // This allows pasting into visual editors (Gmail/Word) AND code editors
+                const blobHtml = new Blob([html], { type: "text/html" });
+                const blobText = new Blob([html], { type: "text/plain" });
+                
+                const data = [new ClipboardItem({
+                    ["text/html"]: blobHtml,
+                    ["text/plain"]: blobText
+                })];
+                
+                await navigator.clipboard.write(data);
+                showStatus("Design copied! Paste (Ctrl+V) into your email.", "text-green-600");
+            } catch (err) {
+                console.error("Clipboard API error", err);
+                // Fallback for older browsers
+                try {
+                    await navigator.clipboard.writeText(html);
+                    showStatus("HTML Source copied (Rich Copy failed).", "text-orange-600");
+                } catch (e) {
+                    showStatus("Copy failed.", "text-red-600");
+                }
+            }
         });
 
         function showStatus(msg, colorClass) {
