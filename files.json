@@ -1,0 +1,42 @@
+[
+    {
+        "filename": "architecture.html",
+        "name": "Architecture Template"
+    },
+    {
+        "filename": "furniture.html",
+        "name": "Furniture Template"
+    },
+    {
+        "filename": "interior-designing.html",
+        "name": "Interior Designing Template"
+    },
+    {
+        "filename": "kitchen-designing.html",
+        "name": "Kitchen Designing Template"
+    },
+    {
+        "filename": "machinery.html",
+        "name": "Machinery Template"
+    },
+    {
+        "filename": "rug.html",
+        "name": "Rug Template"
+    },
+    {
+        "filename": "sanitaryware.html",
+        "name": "Sanitaryware Template"
+    },
+
+
+
+    
+    {
+        "filename": "Stanley.html",
+        "name": "TRR Template"
+    },
+    {
+        "filename": "trr.html",
+        "name": "TRR Template"
+    }
+]
