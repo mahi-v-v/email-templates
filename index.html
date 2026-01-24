@@ -86,7 +86,6 @@
                             <i class="fa-solid fa-download"></i> Download HTML
                         </button>
                         
-                        <!-- NEW EMAIL BUTTON -->
                         <button id="emailBtn" disabled class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors border border-slate-200">
                             <i class="fa-regular fa-copy"></i> Copy for Email
                         </button>
@@ -122,6 +121,59 @@
     </main>
 
     <script>
+        // ==========================================
+        //  TEMPLATE DEFAULTS (Inserted from Old Code)
+        // ==========================================
+        const TEMPLATE_DEFAULTS = {
+            "architecture.html": {
+                Company_Name: "{{Company_Name}}",
+                Direct_AR_Link: "https://gamisya.com/ar/architecture",
+                Banner_Image_URL: "https://gamisya.com/assets/banners/architecture.jpg",
+                QR_Image_URL: "https://gamisya.com/assets/qr/furniture.png",
+            },
+            "furniture.html": {
+                Company_Name: "{{Company_Name}}",
+                Direct_AR_Link: "https://ar.gamisya.com/ar-quick?qr=AR-1767777460548-A1E6C72DBFE8",
+                QR_Image_URL: "https://gamisya.com/assets/Email%20Assets/fu_gaqr_001_P_sofa.png",
+                Banner_Image_URL: "https://gamisya.com/assets/Email%20Assets/fu_gaba_001_P_sofa.png"
+            },
+            "interior-designing.html": {
+                Company_Name: "{{Company_Name}}",
+                Direct_AR_Link: "https://ar.gamisya.com/ar-quick?qr=AR-1767769420449-1773D7075323",
+                Banner_Image_URL: "https://gamisya.com/assets/Email%20Assets/in_gaba_001_3bhk_Apartment.png",
+                QR_Image_URL: "https://gamisya.com/assets/qr/furniture.png",
+            },
+            "kitchen-designing.html": {
+                Company_Name: "{{Company_Name}}",
+                Direct_AR_Link: "https://gamisya.com/ar/kitchen",
+                Banner_Image_URL: "https://gamisya.com/assets/banners/kitchen.jpg",
+                QR_Image_URL: "https://gamisya.com/assets/qr/furniture.png",
+            },
+            "machinery.html": {
+                Company_Name: "{{Company_Name}}",
+                Direct_AR_Link: "https://gamisya.com/ar/machinery",
+                Banner_Image_URL: "https://gamisya.com/assets/banners/machinery.jpg",
+                QR_Image_URL: "https://gamisya.com/assets/qr/machinery.png"
+            },
+            "rug.html": {
+                Company_Name: "{{Company_Name}}",
+                Direct_AR_Link: "https://ar.gamisya.com/ar-quick?qr=AR-1768904730439-7675BE5E0785",
+                Secondary_Direct_AR_link: "https://ar.gamisya.com/ar-quick?qr=AR-1768996813793-852F5327BFA9",
+                QR_Image_URL: "https://gamisya.com/assets/Email%20Assets/ru_gaqr_001_E_BWRUG.png",
+                Banner_Image_URL: "https://gamisya.com/assets/Email%20Assets/ru_gaba_001_bwrug.png"
+            },
+            "sanitaryware.html": {
+                Company_Name: "{{Company_Name}}",
+                Direct_AR_Link: "https://gamisya.com/ar/sanitary",
+                Banner_Image_URL: "https://gamisya.com/assets/banners/sanitary.jpg",
+                QR_Image_URL: "https://gamisya.com/assets/qr/sanitary.png"
+            }
+        };
+
+        // ==========================================
+        //  CORE LOGIC (From Visual Base Code)
+        // ==========================================
+
         // DOM Elements
         const fileDropdown = document.getElementById('fileDropdown');
         const dynamicInputs = document.getElementById('dynamicInputs');
@@ -161,7 +213,7 @@
             }
         }
 
-        // --- 2. DYNAMIC VARIABLE DETECTION ---
+        // --- 2. DYNAMIC VARIABLE DETECTION & INPUT CREATION ---
         function detectVariables(html) {
             const regex = /{{\s*([\w\-\.]+)\s*}}/g;
             let match;
@@ -188,14 +240,22 @@
                 return;
             }
 
+            // Get defaults for the current file
+            const fileDefaults = TEMPLATE_DEFAULTS[currentFilename] || {};
+
             vars.forEach(varName => {
+                // Check if a default exists for this variable
+                const defaultValue = fileDefaults[varName] || "";
+
                 const div = document.createElement('div');
                 div.className = "group";
                 const labelText = varName.replace(/_/g, ' ');
+                
                 div.innerHTML = `
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">${labelText}</label>
                     <input type="text" 
                         data-var="${varName}" 
+                        value="${defaultValue}"
                         placeholder="Enter value for ${varName}" 
                         class="variable-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                     >
@@ -236,7 +296,9 @@
                 currentTemplateContent = await res.text();
                 detectedVariables = detectVariables(currentTemplateContent);
                 createInputFields(detectedVariables);
-                updatePreview(currentTemplateContent);
+                
+                // Immediately update preview with defaults if available
+                updatePreview(generateModifiedHtml());
                 
                 downloadBtn.disabled = false;
                 emailBtn.disabled = false;
@@ -299,14 +361,12 @@
             showStatus("Downloaded successfully!", "text-blue-600");
         });
 
-        // EMAIL COPY HANDLER (NEW)
+        // EMAIL COPY HANDLER
         emailBtn.addEventListener('click', async () => {
             const html = generateModifiedHtml();
             if (!html) return;
 
             try {
-                // We create a rich text blob (HTML) and a plain text blob
-                // This allows pasting into visual editors (Gmail/Word) AND code editors
                 const blobHtml = new Blob([html], { type: "text/html" });
                 const blobText = new Blob([html], { type: "text/plain" });
                 
@@ -319,7 +379,6 @@
                 showStatus("Design copied! Paste (Ctrl+V) into your email.", "text-green-600");
             } catch (err) {
                 console.error("Clipboard API error", err);
-                // Fallback for older browsers
                 try {
                     await navigator.clipboard.writeText(html);
                     showStatus("HTML Source copied (Rich Copy failed).", "text-orange-600");
