@@ -36,6 +36,26 @@
             
             <!-- Sidebar -->
             <div class="lg:col-span-4 space-y-6">
+                <div id="alertPane" class="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm relative">
+                    <button onclick="document.getElementById('alertPane').style.display='none'" class="absolute top-3 right-3 text-amber-400 hover:text-amber-600 transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    
+                    <div class="flex gap-3">
+                        <div class="text-amber-500 mt-0.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-amber-800 mb-2">Just a heads up</h3>
+                            <ul class="text-xs text-amber-800 space-y-2">
+                                <li class="flex items-start gap-2">
+                                    <span class="mt-1.5 w-1 h-1 rounded-full bg-amber-500 flex-shrink-0"></span>
+                                    <span><strong>Links:</strong> The links are not updated for any of the templates except the Rug and Furniture ones</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <!-- Step 1: Select -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
