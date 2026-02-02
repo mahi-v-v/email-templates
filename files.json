@@ -26,5 +26,9 @@
     {
         "filename": "sanitaryware.html",
         "name": "Sanitaryware Template"
+    },
+    {
+        "filename": "proposal.html",
+        "name": "Proposal Template"
     }
 ]
