@@ -30,5 +30,9 @@
     {
         "filename": "proposal.html",
         "name": "Proposal Template"
+    },
+    {
+        "filename": "pyramid_timber.html",
+        "name": "Pyramid Timber Template"
     }
 ]
