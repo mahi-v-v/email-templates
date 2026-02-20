@@ -34,5 +34,9 @@
     {
         "filename": "pyramid_timber.html",
         "name": "Pyramid Timber Template"
+    },
+    {
+        "filename": "hardware.html",
+        "name": "Hardware Template"
     }
 ]
